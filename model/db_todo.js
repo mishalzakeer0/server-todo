@@ -4,7 +4,17 @@ const sequelize = new Sequelize('ToDo', 'root', 'password', {
   dialect: 'mysql'
 });
 
-const Task = sequelize.define('Task', {
+const Task = sequelize.define('Tasks', {
+  id:{
+    type: DataTypes.DECIMAL,
+    allowNull:false,
+    autoIncrement:true,
+    primaryKey:true
+  },
+  user_id:{
+    type: DataTypes.DECIMAL,
+    allowNull:false
+  },
   title: {
     type: DataTypes.STRING,
     allowNull: false
@@ -17,10 +27,20 @@ const Task = sequelize.define('Task', {
     type: DataTypes.ENUM("pending", "in-progress", "completed"),
     defaultValue: "pending"  // Set the default value here
   },
+  priority: {
+    type: DataTypes.ENUM("Low", "Medium", "High"),
+    defaultValue: "Low",
+    allowNull: false
+  }
   // created_at: {
   //   type: DataTypes.DATE,
   //   defaultValue: Sequelize.NOW
   // }
+  
+},
+{
+  createdAt:false,
+  updatedAt:false
 });
 
 
