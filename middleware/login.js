@@ -57,20 +57,21 @@ const userSignUp = async (req, res, next) => {
     res.status(401).send({ error: err.message });
   }
 };
+
 const getTasks = async (req, res, next) => {
   try {
-    const { user_id } = req.body;
+    const { user_id } = req.query;
     const tasks = await userValid.findTasks(user_id);
     if (tasks) {
       res.status(200).send({ message: tasks });
+    } else {
+      res.status(404).send({ message: 'No tasks found' });
     }
-
-    next();
   } catch (err) {
     console.error("Error:", err.message);
     res.status(401).send({ error: err.message });
   }
-};
+}; 
 
 const newTask = async (req, res, next) => {
   try {
@@ -93,7 +94,8 @@ const newTask = async (req, res, next) => {
 };
  const updateTask = async (req, res, next) => {
    try {
-     const { id, title, description, status, priority } = req.body;
+    
+     const {id, title, description, status, priority } = req.body;
      const msg = await userValid.updateTask(id, title, description, status, priority);
      const updatedTask = await userValid.findTask(id);
 
@@ -110,19 +112,24 @@ const newTask = async (req, res, next) => {
    }
  };
 
-const deleteTask = async (req, res, next) => {
+ const deleteTask = async (req, res, next) => {
   try {
-    const { id } = req.body;
+    const { id } = req.query; 
+    console.log(id,"123456789876543")
     const msg = await userValid.deleteTask(id);
+
     if (msg) {
-      res.status(200).send({ message: msg });
-      next();
+      res.status(200).send({ message: msg }); 
+    } else {
+      res.status(404).send({ message: "Task not found" }); 
     }
+    next(); 
   } catch (err) {
     console.error("Error:", err.message);
-    res.status(401).send({ error: err.message });
+    res.status(500).send({ error: err.message }); 
   }
 };
+
 
 module.exports = {
   authToken,

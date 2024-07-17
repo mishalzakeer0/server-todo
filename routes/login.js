@@ -27,7 +27,7 @@ route.put("/updateTask", Middleware.updateTask, (req, res) => {
   res.status(200).send({ message: req.updatedTask });
 });
 
-route.delete("/deleteTask", Middleware.deleteTask, (req, res) => {
+route.delete(`/deleteTask`, Middleware.deleteTask, (req, res) => {
   res.status(200).send({ message: req.msg });
 });
 module.exports = route
