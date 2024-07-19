@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const userValid = require("../model/login");
+require('dotenv').config()
 const express = require("express");
 const app = express();
 // Middleware to parse JSON bodies
@@ -10,7 +11,7 @@ const authToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   if (token == null) return res.status(401).send({ error: "Unauthorized" });
-  jwt.verify(token, process.env.USER_KEY, (err, user) => {
+  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
     if (err) return res.status(403).send({ error: "Forbidden" });
     req.user = user; // Attach user data to request object
 
@@ -31,7 +32,7 @@ const userLogin = async (req, res, next) => {
       throw new Error("Invalid credentials");
     }
     // Generate JWT token for authentication
-    const token = jwt.sign({ email: validUser.password }, "secretkey", {
+    const token = jwt.sign({ email: validUser.password }, process.env.SECRET_KEY, {
       expiresIn: "1d",
     });
     res.status(200).send({ message: "Valid User", token, validUser });
@@ -115,7 +116,6 @@ const newTask = async (req, res, next) => {
  const deleteTask = async (req, res, next) => {
   try {
     const { id } = req.query; 
-    console.log(id,"123456789876543")
     const msg = await userValid.deleteTask(id);
 
     if (msg) {
