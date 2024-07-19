@@ -1,16 +1,20 @@
 const jwt = require("jsonwebtoken");
+const cookieParser = require('cookie-parser');
 const userValid = require("../model/login");
 require('dotenv').config()
 const express = require("express");
 const app = express();
-// Middleware to parse JSON bodies
+app.use(cookieParser());
 app.use(express.json());
 
 // Middleware to verify JWT token
 const authToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.status(401).send({ error: "Unauthorized" });
+  const token = req.cookies['token'];
+ 
+  console.log(req.cookies['token'],'token123');
+  if (token == null || token == undefined) {
+    return res.status(401).send({ error: "Unauthorized" });
+  }
   jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
     if (err) return res.status(403).send({ error: "Forbidden" });
     req.user = user; // Attach user data to request object
@@ -20,25 +24,39 @@ const authToken = (req, res, next) => {
   });
 };
 
+
 const userLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    // Validate patient credentials
-    const validUser = await userValid.findUserByEmailAndPassword(
-      email,
-      password
-    );
-    if (validUser.length === 0) {
+    // Validate user credentials
+    const validUser = await userValid.findUserByEmailAndPassword(email, password);
+    if (!validUser) {
       throw new Error("Invalid credentials");
     }
+
     // Generate JWT token for authentication
-    const token = jwt.sign({ email: validUser.password }, process.env.SECRET_KEY, {
+    const token = jwt.sign({ email: validUser.email }, process.env.SECRET_KEY, {
       expiresIn: "1d",
     });
+
+    console.log(validUser,"validUser");
+    res.cookie('token', token, {
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: true,
+      sameSite: 'strict'
+    });
+    
+    res.cookie('userId', validUser.id, {
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: true,
+      sameSite: 'strict'
+    });
+    
     res.status(200).send({ message: "Valid User", token, validUser });
-    next();
+    
+
   } catch (err) {
-    console.error("Error:", err.message);
+    console.error("Error:--", err.message);
     res.status(401).send({ error: err.message });
   }
 };
@@ -49,7 +67,7 @@ const userSignUp = async (req, res, next) => {
 
     const newUser = await userValid.createUser(username, email, password);
     if (newUser) {
-      res.status(200).send({ message: "User Created" });
+      res.send({ message: "User Created" });
     }
 
     next();
@@ -64,7 +82,7 @@ const getTasks = async (req, res, next) => {
     const { user_id } = req.query;
     const tasks = await userValid.findTasks(user_id);
     if (tasks) {
-      res.status(200).send({ message: tasks });
+      res.send({ message: tasks });
     } else {
       res.status(404).send({ message: 'No tasks found' });
     }
@@ -85,7 +103,7 @@ const newTask = async (req, res, next) => {
       priority
     );
     if (tasks) {
-      res.status(200).send({ message: tasks });
+      res.send({ message: tasks });
       next();
     }
   } catch (err) {
@@ -101,7 +119,7 @@ const newTask = async (req, res, next) => {
      const updatedTask = await userValid.findTask(id);
 
      if (msg) {
-       res.status(200).send({ message: msg, updatedTask });
+       res.send({ message: msg, updatedTask });
      } else {
        res.status(404).send({ error: "Task not found" });
      }
@@ -119,7 +137,7 @@ const newTask = async (req, res, next) => {
     const msg = await userValid.deleteTask(id);
 
     if (msg) {
-      res.status(200).send({ message: msg }); 
+      res.send({ message: msg }); 
     } else {
       res.status(404).send({ message: "Task not found" }); 
     }

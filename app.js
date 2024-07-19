@@ -1,6 +1,8 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const loginRoutes = require("./routes/login");
 const app = express();
+app.use(cookieParser());
 // const pool = require("./model/db_todo");
 const cors = require("cors");
 app.use(express.json());

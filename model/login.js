@@ -15,7 +15,7 @@ const findUserByEmailAndPassword = async (email, password) => {
       where: { email: email, password: password },
       raw: true,
     });
-    // console.log(result,"!@#$%$#@#$%");
+    
     return result;
   } catch (error) {
     console.log("failed to find user", error);
